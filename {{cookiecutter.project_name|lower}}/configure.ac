@@ -71,6 +71,8 @@ AC_CACHE_SAVE
              [Port to listen to by default],
              [8087])
 
+AM_CONDITIONAL([HAVE_GRUNT], [test x"$GRUNT" != x"no"])
+
 AC_OUTPUT
 
 cat <<EOF
