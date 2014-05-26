@@ -8,9 +8,10 @@ experiment. Can it be as useful as projects like
 
 Here are the features available:
 
+ - libevent
  - REST endpoint
  - SSE endpoint
- - websocket endpoint
+ - websocket endpoint (not done yet)
  - serve static files
  - build system based on Grunt for client-side JS stuff
  - Angular.js web app boilerplate
@@ -75,6 +76,6 @@ There are three API endpoints:
 
  - a simple HTTP REST endpoing (`/api/1.0/hello`)
  - a SSE enabled endpoint (`/api/1.0/sse`)
- - a websocket endpoint (`/api/1.0/ws`)
+ - a websocket endpoint (`/api/1.0/ws`) (not done yet)
 
 They are meant as example and you should modify them.
