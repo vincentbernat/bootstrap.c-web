@@ -120,6 +120,7 @@ main(int argc, char *argv[])
 	   TODO:3000 Try to keep the libevent and http module only targeted for this.
 	   TODO:3000 Use another module if you need to do additional stuff.
 	*/
+	TAILQ_INIT(&cfg.clients);
 	const char *what;
 	if ((what = "libevent", {{cookiecutter.small_prefix}}_event_configure(&cfg)) == -1 ||
 	    (what = "http", {{cookiecutter.small_prefix}}_http_configure(&cfg) == -1)) {

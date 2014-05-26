@@ -55,9 +55,12 @@ struct arg_addr *arg_addr0(const char *, const char *,
     const char *, const char *, char);
 
 /* http.c */
+struct {{cookiecutter.small_prefix}}_sse_client;
 struct {{cookiecutter.small_prefix}}_http_private;
 int  {{cookiecutter.small_prefix}}_http_configure(struct {{cookiecutter.small_prefix}}_cfg *);
 void {{cookiecutter.small_prefix}}_http_shutdown(struct {{cookiecutter.small_prefix}}_cfg *);
+void {{cookiecutter.small_prefix}}_http_sse_send(struct {{cookiecutter.small_prefix}}_cfg *, const char *);
+void {{cookiecutter.small_prefix}}_http_sse_send_to(struct {{cookiecutter.small_prefix}}_cfg *, const char *, struct {{cookiecutter.small_prefix}}_sse_client *);
 
 /* event.c */
 struct {{cookiecutter.small_prefix}}_event_private;
@@ -73,6 +76,9 @@ void {{cookiecutter.small_prefix}}_event_shutdown(struct {{cookiecutter.small_pr
 struct {{cookiecutter.small_prefix}}_cfg {
 	struct addrinfo *listen; /* Address to listen to */
 	char *web;               /* Path to static files for HTTP */
+
+	/* List of SSE clients */
+	TAILQ_HEAD(, {{cookiecutter.small_prefix}}_sse_client) clients;
 
 	struct {{cookiecutter.small_prefix}}_event_private *event;
 	struct {{cookiecutter.small_prefix}}_http_private *http;

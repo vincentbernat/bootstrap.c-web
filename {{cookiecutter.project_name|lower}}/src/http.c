@@ -32,6 +32,17 @@ struct {{cookiecutter.small_prefix}}_http_private {
 	struct evhttp *http;
 };
 
+struct {{cookiecutter.small_prefix}}_sse_client {
+	struct {{cookiecutter.small_prefix}}_cfg *cfg;
+
+	TAILQ_ENTRY({{cookiecutter.small_prefix}}_sse_client) next;
+	struct evhttp_request *req;
+
+	/* TODO:3505 Each SSE client is kept in a structure like this.
+	 * TODO:3505 You can store anything related the client here.
+	 */
+};
+
 /**
  * Log HTTP request.
  *
@@ -347,6 +358,113 @@ done:
 	json_decref(export);
 }
 
+/**
+ * Callback when an SSE client disconnects.
+ */
+static void
+{{cookiecutter.small_prefix}}_http_sse_closecb(struct evhttp_connection *evconn,
+    void *arg)
+{
+	struct {{cookiecutter.small_prefix}}_sse_client *client = arg;
+	struct {{cookiecutter.small_prefix}}_cfg *cfg = client->cfg;
+	/* TODO:3507 An SSE client has been disconnected, free anything that should
+	 * TODO:3507 be freed here.
+	 */
+	TAILQ_REMOVE(&cfg->clients, client, next);
+	free(client);
+}
+
+/**
+ * Callback when an SSE client connects.
+ */
+static void
+{{cookiecutter.small_prefix}}_http_sse_cb(struct evhttp_request *req, void *arg)
+{
+	struct {{cookiecutter.small_prefix}}_cfg *cfg = arg;
+
+	/* Only accepts GET requests */
+	switch (evhttp_request_get_command(req)) {
+	case EVHTTP_REQ_GET: break;
+	default:
+		log_warnx("http", "reject non-GET request on sse URI");
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_BADREQUEST);
+		return;
+	}
+
+	{{cookiecutter.small_prefix}}_http_log(req);
+
+	/* Register the client */
+	struct {{cookiecutter.small_prefix}}_sse_client *client = calloc(1, sizeof(struct {{cookiecutter.small_prefix}}_sse_client));
+	if (client == NULL) {
+		log_warn("http", "no memory for a new client");
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_SERVUNAVAIL);
+	}
+	client->cfg = cfg;
+	client->req = req;
+	TAILQ_INSERT_TAIL(&cfg->clients, client, next);
+	evhttp_connection_set_closecb(evhttp_request_get_connection(req),
+	    {{cookiecutter.small_prefix}}_http_sse_closecb, client);
+
+	/* Start chunked reply */
+	evhttp_add_header(evhttp_request_get_output_headers(req),
+	    "Content-Type", "text/event-stream");
+	evhttp_add_header(evhttp_request_get_output_headers(req),
+	    "Cache-Control", "no-cache");
+	evhttp_send_reply_start(req, 200, "OK");
+
+	/* TODO:3506 If you need to do some special actions when an SSE client connects,
+	 * TODO:3506 do it here. Currently, we broadcast the number of connected clients
+	 * TODO:3506 to everybody.
+	 */
+	size_t count = 0;
+	json_t *jcount = NULL;
+	char *scount = NULL;
+	TAILQ_FOREACH(client, &cfg->clients, next) count++;
+	jcount = json_pack("{si}", "clients", count);
+	scount = json_dumps(jcount, JSON_COMPACT);
+	{{cookiecutter.small_prefix}}_http_sse_send(cfg, scount);
+	free(scount);
+	json_decref(jcount);
+}
+
+/**
+ * Broadcast to all SSE clients.
+ *
+ * @param result String to be broadcasted
+ */
+void
+{{cookiecutter.small_prefix}}_http_sse_send(struct {{cookiecutter.small_prefix}}_cfg *cfg,
+    const char *result)
+{
+	struct {{cookiecutter.small_prefix}}_sse_client *client;
+	TAILQ_FOREACH(client, &cfg->clients, next) {
+		{{cookiecutter.small_prefix}}_http_sse_send_to(cfg, result, client);
+	}
+}
+
+/*
+ * Send to a given SSE client.
+ *
+ * @param result String to be sent
+ * @param client Target client
+ */
+void
+{{cookiecutter.small_prefix}}_http_sse_send_to(struct {{cookiecutter.small_prefix}}_cfg *cfg,
+    const char *result,
+    struct {{cookiecutter.small_prefix}}_sse_client *client)
+{
+	struct evbuffer *buf = NULL;
+	if ((buf = evbuffer_new()) == NULL ||
+	    evbuffer_add(buf, "data: ", 6) == -1 ||
+	    evbuffer_add(buf, result, strlen(result)) == -1 ||
+	    evbuffer_add(buf, "\n\n", 2) == -1) {
+		log_warnx("http", "unable to build outgoing buffer");
+		if (buf) evbuffer_free(buf);
+		return;
+	}
+	evhttp_send_reply_chunk(client->req, buf);
+	evbuffer_free(buf);
+}
 
 /**
  * Register some HTTP callbacks
@@ -357,6 +475,7 @@ static int
 	log_debug("http", "register callbacks");
 	/* TODO:3002 To add more HTTP endpoint, add them here. */
 	evhttp_set_cb(cfg->http->http, "/api/1.0/hello", {{cookiecutter.small_prefix}}_http_hello_cb, cfg);
+	evhttp_set_cb(cfg->http->http, "/api/1.0/sse", {{cookiecutter.small_prefix}}_http_sse_cb, cfg);
 	evhttp_set_gencb(cfg->http->http, {{cookiecutter.small_prefix}}_http_static_cb, cfg);
 	return 0;
 }
