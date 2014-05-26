@@ -55,6 +55,8 @@ AC_CACHE_SAVE
 PKG_CHECK_MODULES([ARGTABLE], [argtable2 >= 9])
 PKG_CHECK_MODULES([LIBEVENT], [libevent >= 2.0.4])
 PKG_CHECK_MODULES([JANSSON],  [jansson >= 2.1])
+PKG_CHECK_MODULES([CRYPTO],   [libcrypto >= 0.9.8])
+{{cookiecutter.small_prefix}}_CHECK_LIBWSLAY
 
 AC_CACHE_SAVE
 
@@ -75,6 +77,12 @@ AM_CONDITIONAL([HAVE_GRUNT], [test x"$GRUNT" != x"no"])
 
 AC_OUTPUT
 
+if test x"$LIBWSLAY_EMBEDDED" = x; then
+   libwslay=system
+else
+   libwslay=embedded
+fi
+
 cat <<EOF
 
 ------------------ Summary ------------------
@@ -82,6 +90,7 @@ cat <<EOF
   Prefix.........: $prefix
   C Compiler.....: $CC $CFLAGS $CPPFLAGS
   Linker.........: $LD $LDFLAGS $LIBS
+  libwslay.......: $libwslay
 ---------------------------------------------
 
 Check the above options and compile with:

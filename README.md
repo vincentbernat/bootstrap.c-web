@@ -11,7 +11,7 @@ Here are the features available:
  - libevent
  - REST endpoint
  - SSE endpoint
- - websocket endpoint (not done yet)
+ - websocket endpoint
  - serve static files
  - build system based on Grunt for client-side JS stuff
  - Angular.js web app boilerplate
@@ -46,6 +46,12 @@ cookiecutter`), you can use the following command:
 The small prefix is used to prefix function and structure names. The
 default value `bsw` stands for `bootstrap+web`.
 
+You also need to import wslay project into the tree:
+
+    git submodule init
+    git submodule add git@github.com:tatsuhiro-t/wslay.git
+    cd wslay ; git checkout release-0.1.1
+
 Then, use the following command to get the first steps to get started:
 
     git ls-tree -r --name-only HEAD | \
@@ -76,6 +82,6 @@ There are three API endpoints:
 
  - a simple HTTP REST endpoing (`/api/1.0/hello`)
  - a SSE enabled endpoint (`/api/1.0/sse`)
- - a websocket endpoint (`/api/1.0/ws`) (not done yet)
+ - a websocket endpoint (`/api/1.0/ws`)
 
 They are meant as example and you should modify them.

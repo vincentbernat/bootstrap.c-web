@@ -370,7 +370,7 @@ static void
 	/* TODO:3507 An SSE client has been disconnected, free anything that should
 	 * TODO:3507 be freed here.
 	 */
-	TAILQ_REMOVE(&cfg->clients, client, next);
+	TAILQ_REMOVE(&cfg->sse_clients, client, next);
 	free(client);
 }
 
@@ -401,7 +401,7 @@ static void
 	}
 	client->cfg = cfg;
 	client->req = req;
-	TAILQ_INSERT_TAIL(&cfg->clients, client, next);
+	TAILQ_INSERT_TAIL(&cfg->sse_clients, client, next);
 	evhttp_connection_set_closecb(evhttp_request_get_connection(req),
 	    {{cookiecutter.small_prefix}}_http_sse_closecb, client);
 
@@ -419,7 +419,7 @@ static void
 	size_t count = 0;
 	json_t *jcount = NULL;
 	char *scount = NULL;
-	TAILQ_FOREACH(client, &cfg->clients, next) count++;
+	TAILQ_FOREACH(client, &cfg->sse_clients, next) count++;
 	jcount = json_pack("{si}", "clients", count);
 	scount = json_dumps(jcount, JSON_COMPACT);
 	{{cookiecutter.small_prefix}}_http_sse_send(cfg, scount);
@@ -437,7 +437,7 @@ void
     const char *result)
 {
 	struct {{cookiecutter.small_prefix}}_sse_client *client;
-	TAILQ_FOREACH(client, &cfg->clients, next) {
+	TAILQ_FOREACH(client, &cfg->sse_clients, next) {
 		{{cookiecutter.small_prefix}}_http_sse_send_to(cfg, result, client);
 	}
 }
@@ -467,6 +467,103 @@ void
 }
 
 /**
+ * Helper function to check if a keyword is specified in the given header.
+ *
+ * @param headers  List of headers
+ * @param name	   Header name we want to check
+ * @param value	   Value we must find in the header value
+ * @return true if the value was found, false otherwise.
+ *
+ * The value of the header is expected to be a comma-separated list of keywords.
+ */
+static bool
+header_include(struct evkeyvalq *headers,
+    const char *name, const char *value)
+{
+	const char *header = evhttp_find_header(headers,
+	    name);
+	if (header == NULL) return false;
+	while (*header != '\0') {
+		if (*header == ' ' ||
+		    *header == '\n' ||
+		    *header == '\t' ||
+		    *header == ',') {
+			header++;
+			continue;
+		}
+		size_t len = strcspn(header, " \n\t,");
+		if (strlen(value) == len &&
+		    !strncasecmp(header, value, len)) return true;
+		header += len;
+	}
+	return false;
+}
+
+/**
+ * Handle websockets
+ * This function will handle a websocket incoming connection. It will upgrade
+ * the connection and switch to websocket protocol.
+ */
+static void
+{{cookiecutter.small_prefix}}_http_websocket_cb(struct evhttp_request *req, void *arg)
+{
+	struct {{cookiecutter.small_prefix}}_cfg *cfg = arg;
+
+	/* Only accepts GET requests */
+	switch (evhttp_request_get_command(req)) {
+	case EVHTTP_REQ_GET: break;
+	default:
+		log_warnx("http", "reject non-GET request on websocket URI");
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_BADREQUEST);
+		return;
+	}
+
+	/* Require the upgrade header */
+	struct evkeyvalq *headers = evhttp_request_get_input_headers(req);
+	if (!header_include(headers, "upgrade", "websocket")) {
+		log_warnx("http", "reject WS request without `Upgrade: websocket` header");
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_BADREQUEST);
+		return;
+	}
+
+	/* Require the connection header */
+	if (!header_include(headers, "connection", "upgrade")) {
+		log_warnx("http", "reject WS request without `Connection: Upgrade` header");
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_BADREQUEST);
+		return;
+	}
+
+	/* Require the websocket key */
+	const char *key = evhttp_find_header(headers,
+	    "sec-websocket-key");
+	if (key == NULL ||
+	    strlen(key) != 24) {
+		log_warnx("http", "reject WS request without valid `Sec-WebSocket-Key` header");
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_BADREQUEST);
+		return;
+	}
+
+	/* Require websocket version */
+	const char *version = evhttp_find_header(headers,
+	    "sec-websocket-version");
+	if (version == NULL ||
+	    strcmp(version, "13")) {
+		log_warnx("http", "reject WS request without `Sec-WebSocket-Version: 13` header");
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_BADREQUEST);
+		return;
+	}
+
+	/* We are now on our own. There is no simple hook to just send headers
+	 * in evhttp. Let's do everything ourselves. */
+	log_debug("http", "accepting a WS connection");
+	{{cookiecutter.small_prefix}}_http_log(req);
+	if ({{cookiecutter.small_prefix}}_ws_handle_req(cfg, req, key) == -1) {
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_SERVUNAVAIL);
+	}
+}
+
+
+/**
  * Register some HTTP callbacks
  */
 static int
@@ -476,6 +573,7 @@ static int
 	/* TODO:3002 To add more HTTP endpoint, add them here. */
 	evhttp_set_cb(cfg->http->http, "/api/1.0/hello", {{cookiecutter.small_prefix}}_http_hello_cb, cfg);
 	evhttp_set_cb(cfg->http->http, "/api/1.0/sse", {{cookiecutter.small_prefix}}_http_sse_cb, cfg);
+	evhttp_set_cb(cfg->http->http, "/api/1.0/ws", {{cookiecutter.small_prefix}}_http_websocket_cb, cfg);
 	evhttp_set_gencb(cfg->http->http, {{cookiecutter.small_prefix}}_http_static_cb, cfg);
 	return 0;
 }

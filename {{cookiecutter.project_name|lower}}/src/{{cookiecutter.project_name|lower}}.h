@@ -62,6 +62,16 @@ void {{cookiecutter.small_prefix}}_http_shutdown(struct {{cookiecutter.small_pre
 void {{cookiecutter.small_prefix}}_http_sse_send(struct {{cookiecutter.small_prefix}}_cfg *, const char *);
 void {{cookiecutter.small_prefix}}_http_sse_send_to(struct {{cookiecutter.small_prefix}}_cfg *, const char *, struct {{cookiecutter.small_prefix}}_sse_client *);
 
+/* websocket.c */
+struct {{cookiecutter.small_prefix}}_ws_client;
+const char *{{cookiecutter.small_prefix}}_ws_client_addr(struct {{cookiecutter.small_prefix}}_ws_client *);
+unsigned    {{cookiecutter.small_prefix}}_ws_client_serv(struct {{cookiecutter.small_prefix}}_ws_client *);
+int   {{cookiecutter.small_prefix}}_ws_send(struct {{cookiecutter.small_prefix}}_cfg *, const char *);
+int   {{cookiecutter.small_prefix}}_ws_send_to(struct {{cookiecutter.small_prefix}}_cfg *,
+    const char *, struct {{cookiecutter.small_prefix}}_ws_client *);
+int   {{cookiecutter.small_prefix}}_ws_handle_req(struct {{cookiecutter.small_prefix}}_cfg *, struct evhttp_request *, const char *);
+void  {{cookiecutter.small_prefix}}_ws_shutdown(struct {{cookiecutter.small_prefix}}_cfg *);
+
 /* event.c */
 struct {{cookiecutter.small_prefix}}_event_private;
 int  {{cookiecutter.small_prefix}}_event_configure(struct {{cookiecutter.small_prefix}}_cfg *);
@@ -77,8 +87,9 @@ struct {{cookiecutter.small_prefix}}_cfg {
 	struct addrinfo *listen; /* Address to listen to */
 	char *web;               /* Path to static files for HTTP */
 
-	/* List of SSE clients */
-	TAILQ_HEAD(, {{cookiecutter.small_prefix}}_sse_client) clients;
+	/* List of clients */
+	TAILQ_HEAD(, {{cookiecutter.small_prefix}}_sse_client) sse_clients;
+	TAILQ_HEAD(, {{cookiecutter.small_prefix}}_ws_client) ws_clients;
 
 	struct {{cookiecutter.small_prefix}}_event_private *event;
 	struct {{cookiecutter.small_prefix}}_http_private *http;
