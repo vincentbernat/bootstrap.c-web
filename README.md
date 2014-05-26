@@ -73,8 +73,8 @@ API
 
 There are three API endpoints:
 
- - a simple HTTP REST endpoing (`/hello`)
- - a SSE enabled endpoint (`/sse`)
- - a websocket endpoint (`/ws`)
+ - a simple HTTP REST endpoing (`/api/1.0/hello`)
+ - a SSE enabled endpoint (`/api/1.0/sse`)
+ - a websocket endpoint (`/api/1.0/ws`)
 
 They are meant as example and you should modify them.

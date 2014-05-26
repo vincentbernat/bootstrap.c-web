@@ -26,6 +26,7 @@
 #include <string.h>
 #include <event2/http.h>
 #include <event2/buffer.h>
+#include <jansson.h>
 
 struct {{cookiecutter.small_prefix}}_http_private {
 	struct evhttp *http;
@@ -268,6 +269,86 @@ static int
 }
 
 /**
+ * Send a JSON object as answer.
+ *
+ * @param req The request object we will use to send the answer.
+ * @param export The JSON object to send back.
+ * @return 0 on error, 1 on success.
+ *
+ * This function will dump the JSON object to a string, add the
+ * appropriate headers to the request and send the answer.
+ */
+static int
+{{cookiecutter.small_prefix}}_http_json_send(struct evhttp_request *req, json_t *export) {
+	struct evbuffer    *evb    = NULL;
+	char               *output = NULL;
+
+	if (export) {
+		if ((output = json_dumps(export,
+			    JSON_INDENT(2) | JSON_PRESERVE_ORDER)) == NULL) {
+			log_warnx("http", "unable to encode JSON object");
+			return 0;
+		}
+	}
+
+	evb = evbuffer_new();
+	if (evbuffer_add(evb,
+		export?output:"{}",
+		export?strlen(output):2) == -1) {
+		log_warnx("http", "cannot send JSON answer to client");
+		evhttp_send_error(req, HTTP_INTERNAL, 0);
+		evbuffer_free(evb);
+		free(output);
+		return 0;
+	}
+	free(output);
+
+	evhttp_add_header(evhttp_request_get_output_headers(req),
+	    "Content-Type", "application/json");
+	/* See:
+	   http://stackoverflow.com/questions/1046966/whats-the-difference-between-cache-control-max-age-0-and-no-cache */
+	evhttp_add_header(evhttp_request_get_output_headers(req),
+	    "Cache-Control", " private, max-age=0");
+	evhttp_send_reply(req, 200, "OK", evb);
+	evbuffer_free(evb);
+	return 1;
+}
+
+/**
+ * <tt>GET /hello</tt>: say hello in JSON
+ *
+ * @ingroup httpapi
+ *
+ * \code
+ * {
+ *  "hello": "world"
+ * }
+ * \endcode
+ */
+static void
+{{cookiecutter.small_prefix}}_http_hello_cb(struct evhttp_request *req, void *arg) {
+	/* Check we have a GET request */
+	switch (evhttp_request_get_command(req)) {
+	case EVHTTP_REQ_GET: break;
+	default:
+		{{cookiecutter.small_prefix}}_http_end(req, HTTP_BADREQUEST);
+		return;
+	}
+
+	/* Build and send the answer */
+	json_t *export = json_pack("{ss}", "hello", "world");
+	if (!export) {
+		log_warnx("http", "unable to build a new JSON object");
+		goto done;
+	}
+	{{cookiecutter.small_prefix}}_http_json_send(req, export);
+done:
+	{{cookiecutter.small_prefix}}_http_end(req, HTTP_INTERNAL);
+	json_decref(export);
+}
+
+
+/**
  * Register some HTTP callbacks
  */
 static int
@@ -275,6 +356,7 @@ static int
 {
 	log_debug("http", "register callbacks");
 	/* TODO:3002 To add more HTTP endpoint, add them here. */
+	evhttp_set_cb(cfg->http->http, "/api/1.0/hello", {{cookiecutter.small_prefix}}_http_hello_cb, cfg);
 	evhttp_set_gencb(cfg->http->http, {{cookiecutter.small_prefix}}_http_static_cb, cfg);
 	return 0;
 }
