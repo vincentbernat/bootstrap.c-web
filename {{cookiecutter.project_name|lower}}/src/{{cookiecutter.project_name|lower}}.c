@@ -127,6 +127,8 @@ main(int argc, char *argv[])
 		goto exit;
 	}
 
+	{{cookiecutter.small_prefix}}_event_loop(&cfg);
+
 	exitcode = EXIT_SUCCESS;
 exit:
 	{{cookiecutter.small_prefix}}_http_shutdown(&cfg);
