@@ -13,11 +13,19 @@ Here are the features available:
  - websocket endpoint
  - serve static files
  - build system based on Grunt for client-side JS stuff
+ - Angular.js web app boilerplate
+
+The client side is not the best template that you will find. It lacks
+unit tests integration. You may prefer to use something based on
+[Yeoman][]-generated templates. Just have a look at the `Makefile.am`
+which shows the integration. However, it is fairly complete and has
+most features that you would need.
 
 It is derived from a [similar project][] without the web part.
 
 [HTML5 Boilerplate]: http://html5boilerplate.com/
 [similar project]: https://github.com/vincentbernat/bootstrap.c
+[Yeoman]: http://yeoman.io/
 
 Usage
 -----
