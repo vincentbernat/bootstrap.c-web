@@ -6,6 +6,7 @@ EXTRA_DIST = \
 	package.json \
 	bower.json \
 	Gruntfile.js \
+	nginx.conf \
 	app/index.html \
 	app/images \
 	app/styles \
