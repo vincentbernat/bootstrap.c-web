@@ -87,7 +87,7 @@ void
 {{cookiecutter.small_prefix}}_event_loop(struct {{cookiecutter.small_prefix}}_cfg *cfg)
 {
 	log_debug("event", "starting main loop");
-	if (event_base_loop(cfg->event->base, 0) != 0)
+	if (event_base_loop(cfg->event->base, EVLOOP_NO_EXIT_ON_EMPTY) != 0)
 		log_warnx("event", "problem while running event loop");
 }
 
