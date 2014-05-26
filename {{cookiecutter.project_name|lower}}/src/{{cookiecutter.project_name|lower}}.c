@@ -22,10 +22,33 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <argtable2.h>
 #include <string.h>
 
 extern const char *__progname;
+
+static char *
+full_path(const char *path)
+{
+char *newpath = realpath(path, NULL);
+        return newpath;
+}
+
+static struct addrinfo *
+listen_or_default(struct addrinfo **info)
+{
+        if (*info) return *info;
+
+        /* Default value for listen */
+        struct addrinfo hints = {
+                .ai_family = AF_UNSPEC, /* IPv4 or IPv6 */
+                .ai_socktype = SOCK_STREAM,
+                .ai_flags = AI_PASSIVE
+        };
+        getaddrinfo({{cookiecutter.small_prefix|upper}}_WEB_ADDRESS,
+	    {{cookiecutter.small_prefix|upper}}_WEB_PORT,
+            &hints, info);
+        return *info;
+}
 
 int
 main(int argc, char *argv[])
@@ -41,18 +64,27 @@ main(int argc, char *argv[])
 	struct arg_lit *arg_help    = arg_lit0("h", "help", "display help and exit");
 	struct arg_lit *arg_version = arg_lit0("v", "version", "print version and exit");
 	struct arg_str *arg_filter  = arg_strn("D", NULL, NULL, 0, 10, "set allowed debug tokens");
+	struct arg_addr *arg_listen = arg_addr0("l", "listen", "address:port", "address and port to bind to", ':');
+        struct arg_str  *arg_web    = arg_str0("w", "web", "directory", "directory containing static assets");
+
 	void *argtable[] = { arg_debug,
 			     arg_help,
 			     arg_version,
 			     arg_filter,
+			     arg_listen,
+			     arg_web,
 			     /* Other arguments should be here */
 			     arg_fini
 	};
+
+	struct {{cookiecutter.small_prefix}}_cfg cfg = {};
 
 	if (arg_nullcheck(argtable) != 0) {
 		fprintf(stderr, "%s: insufficient memory\n", __progname);
 		goto exit;
 	}
+
+	arg_web->sval[0] = {{cookiecutter.small_prefix|upper}}_WEB_DIR;
 
 	int n = arg_parse(argc, argv, argtable);
 	if (n != 0 || arg_help->count) {
@@ -77,13 +109,30 @@ main(int argc, char *argv[])
 
 	log_init(arg_debug->count, __progname);
 
-	/* TODO:3000 It's time for you program to do something. Add anything
-	 * TODO:3000 you want here. */
-	log_info("main", "hello world!");
-	log_warnx("main", "your program does nothing");
+	cfg.listen = listen_or_default(&arg_listen->info);
+	cfg.web = full_path(arg_web->sval[0]);
+	if (!cfg.web) {
+		log_crit("main", "unable to resolve %s", arg_web->sval[0]);
+		goto exit;
+	}
+
+	/* TODO:3000 To do some additional stuff, you need to initialize submodules here.
+	   TODO:3000 Try to keep the libevent and http module only targeted for this.
+	   TODO:3000 Use another module if you need to do additional stuff.
+	*/
+	const char *what;
+	if ((what = "libevent", {{cookiecutter.small_prefix}}_event_configure(&cfg)) == -1 ||
+	    (what = "http", {{cookiecutter.small_prefix}}_http_configure(&cfg) == -1)) {
+		log_crit("main", "%s configuration has failed", what);
+		goto exit;
+	}
 
 	exitcode = EXIT_SUCCESS;
 exit:
+	{{cookiecutter.small_prefix}}_http_shutdown(&cfg);
+	{{cookiecutter.small_prefix}}_event_shutdown(&cfg);
+	if (arg_listen && arg_listen->info) freeaddrinfo(arg_listen->info);
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+	free(cfg.web);
 	return exitcode;
 }

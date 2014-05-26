@@ -3,5 +3,6 @@
     "email": "bernat@luffy.cx",
     "repo_name": "bootstrap",
     "project_name": "bootstrap",
-    "project_description": "boilerplate for small C programs with autotools"
+    "small_prefix": "bsw",
+    "project_description": "boilerplate for small C programs exposing an HTTP API"
 }

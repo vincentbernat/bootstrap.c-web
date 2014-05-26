@@ -24,11 +24,58 @@
 
 #include "log.h"
 
+#define _GNU_SOURCE
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/queue.h>
+#include <netdb.h>
+#include <argtable2.h>
+#include <event2/http.h>
+
+#define SERVSTRLEN 6
+
+struct {{cookiecutter.small_prefix}}_cfg;
 
 /* TODO:5001 Declare here functions that you will use in several files. Those
  * TODO:5001 functions should not be prefixed with `static` keyword. All other
  * TODO:5001 functions should.
  */
+
+/* arg.c */
+struct arg_addr {
+	struct arg_hdr hdr;
+	int count;
+	char sep;
+	struct addrinfo *info;
+};
+struct arg_addr *arg_addr1(const char *, const char *,
+    const char *, const char *, char);
+struct arg_addr *arg_addr0(const char *, const char *,
+    const char *, const char *, char);
+
+/* http.c */
+struct {{cookiecutter.small_prefix}}_http_private;
+int  {{cookiecutter.small_prefix}}_http_configure(struct {{cookiecutter.small_prefix}}_cfg *);
+void {{cookiecutter.small_prefix}}_http_shutdown(struct {{cookiecutter.small_prefix}}_cfg *);
+
+/* event.c */
+struct {{cookiecutter.small_prefix}}_event_private;
+int  {{cookiecutter.small_prefix}}_event_configure(struct {{cookiecutter.small_prefix}}_cfg *);
+void {{cookiecutter.small_prefix}}_event_loop(struct {{cookiecutter.small_prefix}}_cfg *);
+void {{cookiecutter.small_prefix}}_event_shutdown(struct {{cookiecutter.small_prefix}}_cfg *);
+
+/* TODO:5003 When you want to use a "global" variable, put it in this structure.
+ * TODO:5003 You can use substructures to be used in different part of the
+ * TODO:5003 application. It is better to keep stuff seperate.
+ */
+
+struct {{cookiecutter.small_prefix}}_cfg {
+	struct addrinfo *listen; /* Address to listen to */
+	char *web;               /* Path to static files for HTTP */
+
+	struct {{cookiecutter.small_prefix}}_event_private *event;
+	struct {{cookiecutter.small_prefix}}_http_private *http;
+};
 
 #endif

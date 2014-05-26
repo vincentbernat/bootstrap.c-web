@@ -50,12 +50,25 @@ AX_LDFLAGS_OPTION([-Wl,-z,now])
 AC_CACHE_SAVE
 
 ## TODO:2003 Add the dependencies of your project here.
-## TODO:2003 The use of "argtable2" here is not mandatory. You don't have
-## TODO:2003 to keep it.
 
 PKG_CHECK_MODULES([ARGTABLE], [argtable2 >= 9])
+PKG_CHECK_MODULES([LIBEVENT], [libevent >= 2.0.4])
+PKG_CHECK_MODULES([JANSSON],  [jansson >= 2.1])
 
 AC_CACHE_SAVE
+
+## TODO:2005 Add compile-time options here. They are
+## TODO:2005 usually overridable using the command-line.
+
+{{cookiecutter.small_prefix}}_ARG_WITH([{{cookiecutter.small_prefix}}-web-dir],
+             [Which directory contains static web files],
+             [${datadir}/${PACKAGE_NAME}/web])
+{{cookiecutter.small_prefix}}_ARG_WITH([{{cookiecutter.small_prefix}}-web-address],
+             [Address to bind to by default],
+             [localhost])
+{{cookiecutter.small_prefix}}_ARG_WITH([{{cookiecutter.small_prefix}}-web-port],
+             [Port to listen to by default],
+             [8087])
 
 AC_OUTPUT
 
