@@ -105,7 +105,7 @@ module.exports = function(grunt) {
     // lint
     jshint: {
       options: {
-        indent: 4,
+        indent: 2,
         reporter: require('jshint-stylish'),
         globals: {
           // generic
