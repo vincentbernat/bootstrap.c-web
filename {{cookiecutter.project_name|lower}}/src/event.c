@@ -80,14 +80,25 @@ int
 	return 0;
 }
 
+static void
+nothing(evutil_socket_t fd, short what, void *arg)
+{
+}
+
 /**
  * Run main loop
  */
 void
 {{cookiecutter.small_prefix}}_event_loop(struct {{cookiecutter.small_prefix}}_cfg *cfg)
 {
+	/* We need a fake timeout event to avoid exiting the loop if we only
+	 * provide a web API. */
+	struct event *ev = event_new(cfg->event->base, -1, EV_PERSIST, nothing, NULL);
+	struct timeval one_minute = { 60, 0 };
+	event_add(ev, &one_minute);
+	/* Start the loop */
 	log_debug("event", "starting main loop");
-	if (event_base_loop(cfg->event->base, EVLOOP_NO_EXIT_ON_EMPTY) != 0)
+	if (event_base_loop(cfg->event->base, 0) != 0)
 		log_warnx("event", "problem while running event loop");
 }
 
