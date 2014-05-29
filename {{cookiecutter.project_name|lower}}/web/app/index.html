@@ -13,10 +13,10 @@
   <link rel="stylesheet" href="styles/main.css">
   <!-- endbuild -->
 </head>
-<body ng-app="{{cookiecutter.small_prefix}}controller">
+<body ng-app="{{cookiecutter.small_prefix}}" ng-controller="MainCtrl">
 
   <!-- TODO:3501 Your application markup should go there. -->
-  <h1>Hello there!</h1>
+  <h1>Hello <span ng-bind="who"></span>!</h1>
 
   <!-- build:js scripts/modules.js -->
   <script src="bower_components/angular/angular.js"></script>
@@ -27,6 +27,7 @@
   <!-- TODO:3503 app/templates/ directory. -->
   <script src="scripts/app.js"></script>
   <script src="scripts/templates.js"></script>
+  <script src="scripts/controllers/main.js"></script>
   <script src="scripts/directives/main.js"></script>
   <script src="scripts/services/main.js"></script>
   <!-- endbuild -->
