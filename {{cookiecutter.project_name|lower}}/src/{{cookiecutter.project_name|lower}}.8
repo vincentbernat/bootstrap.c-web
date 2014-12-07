@@ -28,6 +28,8 @@
 .Op Fl d | Fl -debug
 .Op Fl v | Fl -version
 .Op Fl D Ar debug
+.Op Fl l | Fl -listen Ar address:port
+.Op Fl w | Fl -web Ar directory
 .Op Ar ...
 .Sh DESCRIPTION
 .Nm
@@ -50,6 +52,10 @@ This option must be combined with the
 .Fl d
 flag to have some effect.
 Only debugging logs can be filtered.
+.It Fl l | Fl -listen Ar address:port
+Specify the listening address and port for the embedded web server.
+.It Fl w | Fl -web Ar directory
+Specify in which directory the static assets are.
 .El
 .Sh AUTHORS
 .An -nosplit
