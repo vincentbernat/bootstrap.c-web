@@ -35,3 +35,4 @@ Makefile.in
 # web stuff
 /web/node_modules/
 /web/build/
+/web/dist/
