@@ -31,3 +31,6 @@ Makefile.in
 /GRTAGS
 /GSYMS
 /GTAGS
+
+# web stuff
+/web/node_modules/
