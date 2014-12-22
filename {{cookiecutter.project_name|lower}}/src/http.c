@@ -370,6 +370,7 @@ static void
 	/* TODO:3507 An SSE client has been disconnected, free anything that should
 	 * TODO:3507 be freed here.
 	 */
+	evhttp_send_reply_end(client->req);
 	TAILQ_REMOVE(&cfg->sse_clients, client, next);
 	free(client);
 }
