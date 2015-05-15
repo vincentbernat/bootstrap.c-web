@@ -23,96 +23,125 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <getopt.h>
 
 extern const char *__progname;
 
 static char *
 full_path(const char *path)
 {
-char *newpath = realpath(path, NULL);
+	char *newpath = realpath(path, NULL);
         return newpath;
 }
 
 static struct addrinfo *
-listen_or_default(struct addrinfo **info)
+address(const char *address_port)
 {
-        if (*info) return *info;
-
-        /* Default value for listen */
         struct addrinfo hints = {
                 .ai_family = AF_UNSPEC, /* IPv4 or IPv6 */
                 .ai_socktype = SOCK_STREAM,
                 .ai_flags = AI_PASSIVE
         };
-        getaddrinfo({{cookiecutter.small_prefix|upper}}_WEB_ADDRESS,
-	    {{cookiecutter.small_prefix|upper}}_WEB_PORT,
-            &hints, info);
-        return *info;
+	char *str = strdup(address_port);
+	char *sep = strrchr(str, ':');
+	if (sep == NULL) {
+		fprintf(stderr, "incorrect address:port: %s\n", address_port);
+		free(str);
+		return NULL;
+	}
+	*sep = '\0';
+
+	struct addrinfo *info;
+        getaddrinfo(str, sep + 1,
+            &hints, &info);
+	free(str);
+        return info;
+}
+
+static void
+usage()
+{
+	fprintf(stderr, "Usage: %s", __progname);
+	fprintf(stderr, "\n");
+	fprintf(stderr, " -d, --debug                be more verbose\n");
+	fprintf(stderr, " -h, --help                 display help and exit\n");
+	fprintf(stderr, " -v, --version              print version and exit\n");
+	fprintf(stderr, " -D TOKENS                  set allowed debug tokens\n");
+	fprintf(stderr, " -l ADDRESS:PORT,\n");
+	fprintf(stderr, " --listen ADDRESS:PORT      address and port to bind to\n");
+	fprintf(stderr, " -w PATH, --web PATH        directory containing static assets\n");
 }
 
 int
 main(int argc, char *argv[])
 {
-	int exitcode = EXIT_FAILURE;
-
-	/* TODO:3001 If you want to add more options, add them here. */
-	/* TODO:3001 If you don't want to use libargtable2, you can replace */
-	/* TODO:3001 this code by `getopt()`. See the following URL: */
-	/* TODO:3001   https://github.com/vincentbernat/bootstrap.c/blob/master/%7B%7Bcookiecutter.project_name%7Clower%7D%7D/src/%7B%7Bcookiecutter.project_name%7Clower%7D%7D.c */
-	struct arg_end *arg_fini    = arg_end(5);
-	struct arg_lit *arg_debug   = arg_litn("d", "debug", 0, 3, "be more verbose");
-	struct arg_lit *arg_help    = arg_lit0("h", "help", "display help and exit");
-	struct arg_lit *arg_version = arg_lit0("v", "version", "print version and exit");
-	struct arg_str *arg_filter  = arg_strn("D", NULL, NULL, 0, 10, "set allowed debug tokens");
-	struct arg_addr *arg_listen = arg_addr0("l", "listen", "address:port", "address and port to bind to", ':');
-        struct arg_str  *arg_web    = arg_str0("w", "web", "directory", "directory containing static assets");
-
-	void *argtable[] = { arg_debug,
-			     arg_help,
-			     arg_version,
-			     arg_filter,
-			     arg_listen,
-			     arg_web,
-			     /* Other arguments should be here */
-			     arg_fini
-	};
-
+	int exitcode = EXIT_FAILURE, c;
+	int debug = 0;
+	const char *web_address = {{cookiecutter.small_prefix|upper}}_WEB_ADDRESS;
+	const char *web_path =  {{cookiecutter.small_prefix|upper}}_WEB_DIR;
 	struct {{cookiecutter.small_prefix}}_cfg cfg = {};
 
-	if (arg_nullcheck(argtable) != 0) {
-		fprintf(stderr, "%s: insufficient memory\n", __progname);
-		goto exit;
+	/* TODO:3001 If you want to add more options, add them here. */
+	/* TODO:3001 Don't forget to update usage above and manual page. */
+	static struct option long_options[] = {
+		{ "debug", no_argument, 0, 'd' },
+		{ "help",  no_argument, 0, 'h' },
+		{ "version", no_argument, 0, 'v' },
+		{ "listen", required_argument, 0, 'l' },
+		{ "web", required_argument, 0, 'w' },
+		{ 0 }
+	};
+
+	while (1) {
+		int option_index = 0;
+		c = getopt_long(argc, argv, "dhvl:w:t:T:S:I",
+		    long_options, &option_index);
+		if (c == -1) break;
+
+		switch (c) {
+		case 'd':
+			debug++;
+			break;
+		case 'h':
+			usage();
+			return 0;
+		case 'v':
+			fprintf(stdout, "%s\n", PACKAGE_VERSION);
+			return 0;
+		case 'D':
+			log_accept(optarg);
+			break;
+		case 'l':
+			web_address = optarg;
+			break;
+		case 'w':
+			web_path = optarg;
+			break;
+		case '?':
+			usage();
+			return 1;
+		default:
+			fprintf(stderr, "unknown option `%c'\n", c);
+			usage();
+			return 1;
+		}
+	}
+	if (optind < argc) {
+		fprintf(stderr, "positional arguments are not accepted\n");
+		usage();
+		return 1;
 	}
 
-	arg_web->sval[0] = {{cookiecutter.small_prefix|upper}}_WEB_DIR;
+	log_init(debug, __progname);
 
-	int n = arg_parse(argc, argv, argtable);
-	if (n != 0 || arg_help->count) {
-		if (n != 0)  arg_print_errors(stderr, arg_fini, __progname);
-		else exitcode = EXIT_SUCCESS;
-		fprintf(stderr, "Usage: %s", __progname);
-		arg_print_syntax(stderr, argtable, "\n");
-		arg_print_glossary(stderr, argtable, "  %-25s %s\n");
-		fprintf(stderr, "\n");
-		fprintf(stderr, "see manual page " PACKAGE "(8) for more information\n");
+	cfg.listen = address(web_address);
+	if (!cfg.listen) {
+		log_crit("main", "unable to resolve %s", web_address);
 		goto exit;
 	}
-
-	if (arg_version->count) {
-		fprintf(stdout, "%s\n", PACKAGE_VERSION);
-		exitcode = EXIT_SUCCESS;
-		goto exit;
-	}
-
-	for (int i = 0; i < arg_filter->count; i++)
-		log_accept(arg_filter->sval[i]);
-
-	log_init(arg_debug->count, __progname);
-
-	cfg.listen = listen_or_default(&arg_listen->info);
-	cfg.web = full_path(arg_web->sval[0]);
+	cfg.web = full_path(web_path);
 	if (!cfg.web) {
-		log_crit("main", "unable to resolve %s", arg_web->sval[0]);
+		log_crit("main", "unable to resolve %s", web_path);
 		goto exit;
 	}
 
@@ -136,8 +165,7 @@ exit:
 	{{cookiecutter.small_prefix}}_ws_shutdown(&cfg);
 	{{cookiecutter.small_prefix}}_http_shutdown(&cfg);
 	{{cookiecutter.small_prefix}}_event_shutdown(&cfg);
-	if (arg_listen && arg_listen->info) freeaddrinfo(arg_listen->info);
-	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+	if (cfg.listen) freeaddrinfo(cfg.listen);
 	free(cfg.web);
 	return exitcode;
 }

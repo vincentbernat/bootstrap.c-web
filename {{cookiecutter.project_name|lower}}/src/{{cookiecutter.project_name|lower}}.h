@@ -29,7 +29,6 @@
 #include <sys/socket.h>
 #include <sys/queue.h>
 #include <netdb.h>
-#include <argtable2.h>
 #include <event2/http.h>
 
 #define SERVSTRLEN 6
@@ -40,18 +39,6 @@ struct {{cookiecutter.small_prefix}}_cfg;
  * TODO:5001 functions should not be prefixed with `static` keyword. All other
  * TODO:5001 functions should.
  */
-
-/* arg.c */
-struct arg_addr {
-	struct arg_hdr hdr;
-	int count;
-	char sep;
-	struct addrinfo *info;
-};
-struct arg_addr *arg_addr1(const char *, const char *,
-    const char *, const char *, char);
-struct arg_addr *arg_addr0(const char *, const char *,
-    const char *, const char *, char);
 
 /* http.c */
 struct {{cookiecutter.small_prefix}}_sse_client;
