@@ -27,6 +27,7 @@
 #include <event2/http.h>
 #include <event2/buffer.h>
 #include <jansson.h>
+#include <time.h>
 
 struct {{cookiecutter.small_prefix}}_http_private {
 	struct evhttp *http;
