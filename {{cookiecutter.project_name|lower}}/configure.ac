@@ -64,7 +64,7 @@ AC_CACHE_SAVE
 
 ## TODO:2003 Add the dependencies of your project here.
 
-PKG_CHECK_MODULES([LIBEVENT], [libevent >= 2.0.4])
+PKG_CHECK_MODULES([LIBEVENT], [libevent >= 2.0.17])
 PKG_CHECK_MODULES([JANSSON],  [jansson >= 2.1])
 PKG_CHECK_MODULES([CRYPTO],   [libcrypto >= 0.9.8])
 {{cookiecutter.small_prefix}}_CHECK_LIBWSLAY
