@@ -3,6 +3,7 @@ python: 2.7
 install:
   - sudo apt-get install build-essential autoconf automake libtool libjansson-dev libevent-dev libssl-dev git
   - pip install cookiecutter
+  - pip install Sphinx
 script: |
   set -e
   CURDIR=$PWD
