@@ -1,0 +1,19 @@
+language: python
+python: 2.7
+install:
+  - sudo apt-get install build-essential autoconf automake libtool libjansson-dev libevent-dev libssl-dev libargtable2-dev git
+  - pip install cookiecutter
+script: |
+  set -e
+  CURDIR=$PWD
+  cd /tmp
+  cookiecutter --no-input $CURDIR
+  cd bootstrap
+  git init
+  git submodule init
+  git submodule add https://github.com/tatsuhiro-t/wslay.git
+  (cd wslay ; git checkout release-0.1.1)
+  ./autogen.sh
+  ./configure
+  make
+  make distcheck

@@ -49,7 +49,7 @@ default value `bsw` stands for `bootstrap+web`.
 You also need to import wslay project into the tree:
 
     git submodule init
-    git submodule add git@github.com:tatsuhiro-t/wslay.git
+    git submodule add https://github.com/tatsuhiro-t/wslay.git
     cd wslay ; git checkout release-0.1.1
 
 Then, use the following command to get the first steps to get started:
