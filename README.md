@@ -63,7 +63,7 @@ Then, use the following command to get the first steps to get started:
 Once you are done, your project is ready and you can compile it with
 and get a release tarball with:
 
-    sh autogen.sh
+    ./autogen.sh
     mkdir build
     cd build
     ../configure
