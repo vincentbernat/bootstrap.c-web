@@ -35,7 +35,7 @@ You need [cookiecutter][], a tool to create projects from project
 templates. Once installed (in a virtualenv or just with `pip install
 cookiecutter`), you can use the following command:
 
-    cookiecutter https://github.com/vincentbernat/bootstrap.c.git
+    cookiecutter https://github.com/vincentbernat/bootstrap.c-web.git
     cd your-project
     git init
     git add .
