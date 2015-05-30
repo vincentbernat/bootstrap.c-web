@@ -4,14 +4,13 @@
 
 EXTRA_DIST = \
 	package.json \
-	bower.json \
 	Gruntfile.js \
 	nginx.conf \
 	app/index.html \
 	app/images \
 	app/styles \
 	app/scripts \
-	app/templates \
+	app/components \
 	dist
 
 WEBDIST=$(srcdir)/dist

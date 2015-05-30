@@ -14,7 +14,7 @@ Here are the features available:
  - websocket endpoint
  - serve static files
  - build system based on Grunt for client-side JS stuff
- - Angular.js web app boilerplate
+ - React JS web app boilerplate
 
 The client side is not the best template that you will find. It lacks
 unit tests integration. You may prefer to use something based on

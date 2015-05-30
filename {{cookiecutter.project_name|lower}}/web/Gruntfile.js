@@ -22,9 +22,9 @@ module.exports = function(grunt) {
         files: [ 'app/*.html' ],
         tasks: [ 'build:html' ]
       },
-      templates: {
-        files: [ 'app/templates/*.html' ],
-        tasks: [ 'build:templates' ]
+      react: {
+        files: [ 'app/components/*.jsx' ],
+        tasks: [ 'build:react' ]
       },
       styles: {
         files: [ 'app/styles/*.less' ],
@@ -36,7 +36,7 @@ module.exports = function(grunt) {
       },
       scripts: {
         files: [ 'app/scripts/{,*/}*.js' ],
-        tasks: [ 'build:scripts' ]
+        tasks: [ 'build:react', 'build:scripts' ]
       },
       livereload: {
         options: {
@@ -46,7 +46,7 @@ module.exports = function(grunt) {
           'build/*.html',
           'build/styles/*.css',
           'build/images/*',
-          'build/scripts/{,*/}*.js' // Including templates
+          'build/scripts/{,*/}*.js' // Including components
         ]
       }
     },
@@ -113,7 +113,6 @@ module.exports = function(grunt) {
           require: false,
           console: false,
           // less generic
-          angular: false,
           WebSocket: false
         }
       },
@@ -130,6 +129,18 @@ module.exports = function(grunt) {
       },
       all: {
         src: [ 'app/styles/main.less' ]
+      }
+    },
+
+    // browserify
+    browserify: {
+      react: {
+        options: {
+          transform: [ require('grunt-react').browserify ],
+          debug: true
+        },
+        src: 'app/components/main.jsx',
+        dest: 'build/scripts/app.js'
       }
     },
 
@@ -204,30 +215,6 @@ module.exports = function(grunt) {
       }
     },
 
-    // Prepare Angular files to be minified
-    ngmin: {
-      build: {
-        files: [{
-          expand: true,
-          cwd: 'build/scripts',
-          src: '{,*/}*.js',
-          dest: 'build/scripts'
-        }]
-      }
-    },
-
-    // Build templates
-    ngtemplates: {
-      options: {
-        module: '{{cookiecutter.project_name|lower}}'
-      },
-      build: {
-        cwd: 'app/templates',
-        src: '*.html',
-        dest: 'build/scripts/templates.js'
-      }
-    },
-
     // Copy files
     copy: {
       html: {
@@ -258,16 +245,6 @@ module.exports = function(grunt) {
           ]
         }]
       },
-      bower: {
-        files: [{
-          expand: true,
-          cwd: 'app',
-          dest: 'build',
-          src: [
-            'bower_components/**/*'
-          ]
-        }]
-      },
       dist: {
         files: [{
           expand: true,
@@ -295,14 +272,14 @@ module.exports = function(grunt) {
     case 'html':
       grunt.task.run('copy:html');
       break;
-    case 'templates':
-      grunt.task.run('ngtemplates:build');
-      break;
     case 'styles':
       grunt.task.run('recess', 'less:build', 'autoprefixer:build');
       break;
     case 'scripts':
-      grunt.task.run('jshint', 'copy:scripts', 'ngmin:build');
+      grunt.task.run('jshint', 'copy:scripts');
+      break;
+    case 'react':
+      grunt.task.run('browserify:react');
       break;
     case 'images':
       grunt.task.run('copy:images');
@@ -311,11 +288,10 @@ module.exports = function(grunt) {
       grunt.task.run(
         'clean:build',
         'build:html',
-        'build:templates',
-        'build:styles',
+        'build:react',
         'build:scripts',
         'build:images',
-        'copy:bower'
+        'build:styles'
       );
       break;
     default:
