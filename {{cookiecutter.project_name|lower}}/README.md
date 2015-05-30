@@ -14,7 +14,7 @@ Execute the following commands:
 
 The client part needs to be compiled while inside `web/`:
 
-    $ npm install -g bower grunt
+    $ npm install -g grunt
     $ npm install
     $ bower install
     $ grunt
