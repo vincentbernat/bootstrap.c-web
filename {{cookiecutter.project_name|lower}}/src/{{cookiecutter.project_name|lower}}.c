@@ -77,7 +77,7 @@ main(int argc, char *argv[])
 {
 	int exitcode = EXIT_FAILURE, c;
 	int debug = 0;
-	const char *web_address = {{cookiecutter.small_prefix|upper}}_WEB_ADDRESS;
+	const char *web_address = {{cookiecutter.small_prefix|upper}}_WEB_ADDRESS ":" {{cookiecutter.small_prefix|upper}}_WEB_PORT;
 	const char *web_path =  {{cookiecutter.small_prefix|upper}}_WEB_DIR;
 	struct {{cookiecutter.small_prefix}}_cfg cfg = {};
 
