@@ -171,10 +171,6 @@ static void
 	struct evbuffer   *evb     = NULL;
 	int fd = -1;
 
-	/* We only handle GET requests */
-	if (evhttp_request_get_command(req) != EVHTTP_REQ_GET)
-		goto static_done;
-
 	/* Decode URI */
 	if (!(decoded = evhttp_uri_parse(uri)))
 		goto static_done;
@@ -209,6 +205,10 @@ static void
 		evhttp_send_error(req, HTTP_NOTFOUND, 0);
 		goto static_done;
 	}
+
+	/* We only handle GET requests */
+	if (evhttp_request_get_command(req) != EVHTTP_REQ_GET)
+		goto static_done;
 
 	/* Send file */
 	const char *type = {{cookiecutter.small_prefix}}_http_guess_content_type(canpath);
