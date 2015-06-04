@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "dhvl:w:t:T:S:I",
+		c = getopt_long(argc, argv, "dD:hvl:w:t:T:S:I",
 		    long_options, &option_index);
 		if (c == -1) break;
 
