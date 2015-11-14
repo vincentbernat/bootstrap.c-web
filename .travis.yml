@@ -1,7 +1,18 @@
 language: python
 python: 2.7
+sudo: false
+addons:
+  apt:
+    packages:
+      - build-essential
+      - autoconf
+      - automake
+      - libtool
+      - libjansson-dev
+      - libevent-dev
+      - libssl-dev
+      - git
 install:
-  - sudo apt-get install build-essential autoconf automake libtool libjansson-dev libevent-dev libssl-dev git
   - pip install cookiecutter
   - pip install Sphinx
 script: |
