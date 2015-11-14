@@ -19,5 +19,5 @@ script: |
   (cd wslay ; git checkout release-1.0.0)
   ./autogen.sh
   ./configure
+  (cd web ; npm install)
   make
-  make distcheck
