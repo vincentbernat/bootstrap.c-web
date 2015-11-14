@@ -4,7 +4,7 @@ sudo: required
 dist: trusty
 install:
   - sudo apt-get update
-  - sudo apt-get install build-essential autoconf automake libtool libjansson-dev libevent-dev libssl-dev git
+  - sudo apt-get install -qyy build-essential autoconf automake libtool libjansson-dev libevent-dev libssl-dev git
   - pip install cookiecutter
   - pip install Sphinx
 script: |
