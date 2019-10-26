@@ -9,7 +9,6 @@ dist_man_MANS = {{cookiecutter.project_name|lower}}.8
 ## TODO:5000 Automake will find dependencies by itself. Run
 ## TODO:5000 ./autogen.sh after modifying this file.
 
-<<<<<<< HEAD
 {{cookiecutter.project_name|lower|replace("-","_")}}_SOURCES  = log.c log.h {{cookiecutter.project_name|lower}}.h {{cookiecutter.project_name|lower|replace("-","_")}}.c
 {{cookiecutter.project_name|lower|replace("-","_")}}_SOURCES += event.h event.c http.c websocket.c
 {{cookiecutter.project_name|lower|replace("-","_")}}_CFLAGS   = $(AM_CFLAGS)  @LIBEVENT_CFLAGS@ @JANSSON_CFLAGS@ @LIBWSLAY_CFLAGS@ @CRYPTO_CFLAGS@
