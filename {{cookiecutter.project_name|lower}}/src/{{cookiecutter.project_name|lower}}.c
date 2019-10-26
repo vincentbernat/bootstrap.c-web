@@ -61,7 +61,11 @@ address(const char *address_port)
 static void
 usage()
 {
-	fprintf(stderr, "Usage: %s", __progname);
+	/* TODO:3002 Don't forget to update the usage block with the most
+	 * TODO:3002 important options. */
+	fprintf(stderr, "Usage: %s [OPTIONS]\n",
+	    __progname);
+	fprintf(stderr, "Version: %s\n", PACKAGE_STRING);
 	fprintf(stderr, "\n");
 	fprintf(stderr, " -d, --debug                be more verbose\n");
 	fprintf(stderr, " -h, --help                 display help and exit\n");
@@ -70,6 +74,9 @@ usage()
 	fprintf(stderr, " -l ADDRESS:PORT,\n");
 	fprintf(stderr, " --listen ADDRESS:PORT      address and port to bind to\n");
 	fprintf(stderr, " -w PATH, --web PATH        directory containing static assets\n");
+	fprintf(stderr, " -v, --version      print version and exit\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "see manual page " PACKAGE "(8) for more information\n");
 }
 
 int
