@@ -1,6 +1,8 @@
 bootstrap.c+web
 ===============
 
+⚠ As any unmaintained project using JS, this one is broken. The C part is still interesting. 
+
 `bootstrap.c+web` is a template for simple projects written in C with
 autotools and exposing a web API. It is however mostly an
 experiment. Can it be as useful as projects like
